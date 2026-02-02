@@ -28,6 +28,8 @@ def load_settings(env_path: Optional[Path] = None) -> Settings:
     model_path = Path(_get_env("MODEL_PATH", "artifacts/model.pkl"))
     report_dir = Path(_get_env("REPORT_DIR", "reports"))
     alert_threshold = float(_get_env("ALERT_THRESHOLD", "0.65"))
+    if not 0.0 < alert_threshold < 1.0:
+        raise ValueError("ALERT_THRESHOLD must be between 0 and 1.")
 
     return Settings(
         news_csv_path=base_dir / news_csv,

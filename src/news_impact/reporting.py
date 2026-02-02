@@ -21,13 +21,16 @@ def save_backtest_report(report: BacktestReport, report_dir: Path) -> None:
     summary_path = report_dir / "summary.txt"
     plot_path = report_dir / "strategy_returns.png"
 
+    mean_score = _safe_mean(report.impact_scores)
+    total_return = _safe_sum(report.strategy_returns)
+
     with summary_path.open("w", encoding="utf-8") as handle:
         handle.write("Backtest Summary\n")
         handle.write("================\n")
         for key, value in report.metrics.items():
             handle.write(f"{key}: {value:.4f}\n")
-        handle.write(f"Average impact score: {np.mean(report.impact_scores):.4f}\n")
-        handle.write(f"Strategy total return: {np.sum(report.strategy_returns):.4f}\n")
+        handle.write(f"Average impact score: {mean_score:.4f}\n")
+        handle.write(f"Strategy total return: {total_return:.4f}\n")
 
     _plot_returns(report.strategy_returns, plot_path)
 
@@ -43,3 +46,15 @@ def _plot_returns(strategy_returns: np.ndarray, plot_path: Path) -> None:
     fig.tight_layout()
     fig.savefig(plot_path)
     plt.close(fig)
+
+
+def _safe_mean(values: np.ndarray) -> float:
+    if values.size == 0:
+        return 0.0
+    return float(np.nanmean(values))
+
+
+def _safe_sum(values: np.ndarray) -> float:
+    if values.size == 0:
+        return 0.0
+    return float(np.nansum(values))
