@@ -14,6 +14,8 @@ def monitor_news(
     alert_threshold: float,
     sink: AlertSink,
 ) -> list[AlertEvent]:
+    if not 0.0 < alert_threshold < 1.0:
+        raise ValueError("alert_threshold must be between 0 and 1.")
     alerts: list[AlertEvent] = []
     news_items = list(collector.fetch())
     if not news_items:

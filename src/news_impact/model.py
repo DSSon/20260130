@@ -20,6 +20,8 @@ class ImpactModel:
     features: TextFeatures
 
     def predict_proba(self, news: Sequence[NewsItem]) -> np.ndarray:
+        if not news:
+            return np.array([])
         vectors = vectorize_news(self.features, news)
         return self.classifier.predict_proba(vectors)[:, 1]
 
@@ -32,7 +34,14 @@ class ImpactModel:
         return joblib.load(path)
 
 
-def train_model(news: Sequence[NewsItem], labels: Sequence[int]) -> Tuple[ImpactModel, dict[str, float]]:
+def train_model(
+    news: Sequence[NewsItem],
+    labels: Sequence[int],
+) -> Tuple[ImpactModel, dict[str, float]]:
+    if not news:
+        raise ValueError("Training requires at least one news item.")
+    if len(news) != len(labels):
+        raise ValueError("News and labels must be the same length.")
     features = build_vectorizer(news)
     vectors = vectorize_news(features, news)
     classifier = LogisticRegression(max_iter=500)
@@ -40,10 +49,11 @@ def train_model(news: Sequence[NewsItem], labels: Sequence[int]) -> Tuple[Impact
 
     preds = classifier.predict(vectors)
     probas = classifier.predict_proba(vectors)[:, 1]
+    unique_labels = set(labels)
     metrics = {
         "accuracy": accuracy_score(labels, preds),
-        "f1": f1_score(labels, preds),
-        "roc_auc": roc_auc_score(labels, probas),
+        "f1": f1_score(labels, preds, zero_division=0),
+        "roc_auc": roc_auc_score(labels, probas) if len(unique_labels) > 1 else float("nan"),
     }
     return ImpactModel(classifier=classifier, features=features), metrics
 

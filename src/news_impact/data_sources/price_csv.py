@@ -14,6 +14,8 @@ class CsvPriceCollector(PriceCollector):
         self._path = path
 
     def fetch(self) -> Iterable[PriceBar]:
+        if not self._path.exists():
+            raise FileNotFoundError(f"Price CSV not found: {self._path}")
         data = pd.read_csv(self._path)
         required = {"date", "close"}
         missing = required - set(data.columns)

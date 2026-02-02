@@ -23,6 +23,10 @@ def run_backtest(
     price_bars: Sequence[PriceBar],
     report_dir: Path,
 ) -> BacktestResult:
+    if not news_items:
+        raise ValueError("Backtest requires news items.")
+    if not price_bars:
+        raise ValueError("Backtest requires price bars.")
     prices = _prices_to_frame(price_bars)
     news = _news_to_frame(news_items)
 
@@ -51,9 +55,9 @@ def _prices_to_frame(price_bars: Sequence[PriceBar]) -> pd.DataFrame:
         "date": [bar.date.date() for bar in price_bars],
         "close": [bar.close for bar in price_bars],
     }
-    frame = pd.DataFrame(data).sort_values("date")
+    frame = pd.DataFrame(data).drop_duplicates(subset=["date"], keep="last").sort_values("date")
     frame["next_close"] = frame["close"].shift(-1)
-    frame["next_return"] = frame["next_close"] / frame["close"] - 1.0
+    frame["next_return"] = frame["next_close"] / frame["close"].replace(0, np.nan) - 1.0
     return frame
 
 
@@ -82,11 +86,14 @@ def _frame_to_news(merged: pd.DataFrame, original: Sequence[NewsItem]) -> list[N
 
 
 def _align_news_prices(news: pd.DataFrame, prices: pd.DataFrame) -> pd.DataFrame:
-    return news.merge(prices, on="date", how="left")
+    merged = news.merge(prices, on="date", how="left")
+    return merged.sort_values("date").reset_index(drop=True)
 
 
 def _compute_strategy_returns(merged: pd.DataFrame, impact_scores: np.ndarray) -> np.ndarray:
-    threshold = np.percentile(impact_scores, 75)
+    if impact_scores.size == 0:
+        return np.array([])
+    threshold = np.nanpercentile(impact_scores, 75)
     signals = impact_scores >= threshold
     returns = merged["next_return"].fillna(0.0).to_numpy()
     return returns * signals

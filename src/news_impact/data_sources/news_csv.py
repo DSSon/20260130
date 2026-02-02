@@ -14,6 +14,8 @@ class CsvNewsCollector(NewsCollector):
         self._path = path
 
     def fetch(self) -> Iterable[NewsItem]:
+        if not self._path.exists():
+            raise FileNotFoundError(f"News CSV not found: {self._path}")
         data = pd.read_csv(self._path)
         required = {"published_at", "headline", "body", "source"}
         missing = required - set(data.columns)
