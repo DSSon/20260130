@@ -1,0 +1,25 @@
+# Example backtest configuration
+
+data:
+  path: data/example.csv
+  time_col: date
+  target_col: target
+  return_col: return
+  feature_cols:
+    - feature1
+    - feature2
+
+task: regression
+
+model:
+  name: linear
+  params:
+    learning_rate: 0.05
+    epochs: 300
+    l2: 0.1
+
+backtest:
+  train_ratio: 0.7
+  top_n: 10
+  output_dir: outputs/example
+  save_predictions: true
