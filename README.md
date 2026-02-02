@@ -7,6 +7,23 @@
 ```bash
 python -m venv .venv
 source .venv/bin/activate
+```
+
+Windows PowerShell에서는 아래 명령어를 실행하세요.
+
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+Windows CMD에서는 아래 명령어를 실행하세요.
+
+```bat
+.venv\Scripts\activate.bat
+```
+
+가상환경 활성화 후 아래 명령어를 실행하세요.
+
+```bash
 pip install -e .[dev]
 pre-commit install
 ```
