@@ -1,0 +1,1 @@
+"""News impact modeling package."""
